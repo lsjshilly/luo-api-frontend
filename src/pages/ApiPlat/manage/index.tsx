@@ -1,39 +1,40 @@
-import { addRule, rule, updateRule } from '@/services/ant-design-pro/rule';
-import { deleteApiInfos } from '@/services/swagger/apiController';
+import {
+  addApiInfo,
+  deleteApiInfos,
+  getApiInfoPage,
+  updateApiInfo,
+} from '@/services/swagger/apiController';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
-  ModalForm,
   PageContainer,
   ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Drawer, message } from 'antd';
+import { SortOrder } from 'antd/es/table/interface';
 import React, { useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
+import CreateForm from './CreateForm';
+import UpdateForm from './UpdateForm';
 
 /**
  * @en-US Add node
  * @zh-CN 添加节点
  * @param fields
  */
-const handleAdd = async (fields: API.RuleListItem) => {
+const handleAdd = async (fields: API.ApiAddRequest) => {
   const hide = message.loading('正在添加');
   try {
-    await addRule({
+    await addApiInfo({
       ...fields,
     });
     hide();
-    message.success('Added successfully');
+    message.success('添加成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Adding failed, please try again!');
     return false;
   }
 };
@@ -44,20 +45,17 @@ const handleAdd = async (fields: API.RuleListItem) => {
  *
  * @param fields
  */
-const handleUpdate = async (fields: FormValueType) => {
+const handleUpdate = async (fields: API.ApiUpdateRequest) => {
   const hide = message.loading('Configuring');
   try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
+    await updateApiInfo({
+      ...fields,
     });
     hide();
-    message.success('Configuration is successful');
+    message.success('更新成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Configuration failed, please try again!');
     return false;
   }
 };
@@ -72,20 +70,18 @@ const handleRemove = async (selectedRows: API.ApiInfoVo[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    const ids = selectedRows.filter((row) => row && row.id).map((row) => row.id) || [];
-    console.log('ids', ids);
+    const ids =
+      selectedRows.filter((row) => row && row.id !== undefined).map((row) => row.id as number) ||
+      [];
     await deleteApiInfos({
-      deleteRequest: {
-        // 修复类型错误 不能将类型“undefined”分配给类型“number”。
-        ids: ids,
-      },
+      // 修复类型错误 不能将类型“undefined”分配给类型“number”。
+      ids: ids,
     });
     hide();
     message.success('删除成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Delete failed, please try again');
     return false;
   }
 };
@@ -102,19 +98,20 @@ const TableList: React.FC = () => {
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.ApiInfoVo>();
+  const [selectedRowsState, setSelectedRows] = useState<API.ApiInfoVo[]>([]);
 
   /**
    * @en-US International configuration
    * @zh-CN 国际化配置
    * */
 
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const columns: ProColumns<API.ApiInfoVo>[] = [
     {
-      title: '规则名称',
-      dataIndex: 'name',
-      tip: 'The rule name is the unique key',
+      title: 'ID',
+      key: 'id',
+      hideInForm: true,
+      dataIndex: 'id',
       render: (dom, entity) => {
         return (
           <a
@@ -129,56 +126,62 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: '描述',
-      dataIndex: 'desc',
+      title: 'API名称',
+      dataIndex: 'name',
+      valueType: 'text',
+    },
+    {
+      title: '请求方式',
+      dataIndex: 'method',
+      valueType: 'text',
+    },
+    {
+      title: '接口地址',
+      dataIndex: 'url',
+      valueType: 'text',
+    },
+    {
+      title: '请求信息',
+      dataIndex: 'request',
       valueType: 'textarea',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
+      title: '响应信息',
+      dataIndex: 'response',
+      valueType: 'textarea',
     },
     {
       title: '状态',
       dataIndex: 'status',
+      filters: true,
+      onFilter: false,
+      hideInSearch: true,
       hideInForm: true,
       valueEnum: {
         0: {
           text: '关闭',
           status: 'Default',
         },
+
         1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
+          text: '开启',
           status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
         },
       },
     },
     {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
-      valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
+      title: '描述',
+      dataIndex: 'description',
+      valueType: 'textarea',
     },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      valueType: 'dateTime',
+      sorter: true,
+      hideInSearch: true,
+    },
+
     {
       title: '操作',
       dataIndex: 'option',
@@ -191,22 +194,24 @@ const TableList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          配置
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          订阅警报
+          修改
         </a>,
       ],
     },
   ];
   return (
     <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
+      <ProTable<API.ApiInfoVo>
         headerTitle={'查询表格'}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
+        }}
+        pagination={{
+          defaultPageSize: 10,
+          pageSizeOptions: [10, 20, 50],
+          showSizeChanger: true,
         }}
         toolBarRender={() => [
           <Button
@@ -219,7 +224,41 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={async (
+          params,
+          sort: Record<string, SortOrder>,
+          filter: Record<string, (string | number)[] | null>,
+        ) => {
+          console.log(filter);
+          // 判断filter是否为空，如果不为空，取出status对象并判断是否是数组和数组中是否有值，取出数组中的第一数值
+          const status =
+            filter.status && Array.isArray(filter.status) && filter.status.length > 0
+              ? filter.status[0]
+              : undefined;
+
+          // 将sort参数转换为数组，每个元素并以key=val的形式拼接
+          const sortFields = Object.keys(sort).map((key) => `${key}=${sort[key]}`);
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { current, pageSize, keyword, ...otherParams } = params;
+          // 如果status存在，就将其加入apiQueryRequest对象中
+          const apiQueryRequest = status ? { ...otherParams, status } : otherParams;
+          const res = await getApiInfoPage({
+            apiQueryRequest: {
+              ...apiQueryRequest,
+            },
+            pageRequest: {
+              pageNum: current,
+              pageSize: pageSize,
+              sortFields: sortFields || [],
+            },
+          });
+          return {
+            data: res?.data?.items || [],
+            success: true,
+            total: res?.data?.total || 0,
+          };
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -237,12 +276,8 @@ const TableList: React.FC = () => {
                   fontWeight: 600,
                 }}
               >
-                {selectedRowsState.length}
-              </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)} 万
-              </span>
+                {selectedRowsState.length}项
+              </a>
             </div>
           }
         >
@@ -255,36 +290,26 @@ const TableList: React.FC = () => {
           >
             批量删除
           </Button>
-          <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <ModalForm
-        title={'新建规则'}
-        width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
+
+      <CreateForm
+        visible={createModalOpen}
+        onCancel={() => {
+          handleModalOpen(false);
+        }}
+        onSubmit={async (value) => {
+          const success = await handleAdd(value as API.ApiAddRequest);
           if (success) {
             handleModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
             }
           }
+          return success;
         }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
+      ></CreateForm>
+
       <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
@@ -295,6 +320,7 @@ const TableList: React.FC = () => {
               actionRef.current.reload();
             }
           }
+          return success;
         }}
         onCancel={() => {
           handleUpdateModalOpen(false);
@@ -302,7 +328,7 @@ const TableList: React.FC = () => {
             setCurrentRow(undefined);
           }
         }}
-        updateModalOpen={updateModalOpen}
+        visible={updateModalOpen}
         values={currentRow || {}}
       />
 

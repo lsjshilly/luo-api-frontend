@@ -15,6 +15,16 @@ export default [
       { path: '/admin/sub-page', name: '二级管理页', component: './Admin' },
     ],
   },
+  {
+    path: '/api',
+    name: 'API平台',
+    icon: 'api',
+    routes: [
+      { path: '/api', redirect: '/api/list' },
+      { path: '/api/list', name: 'API管理', component: './ApiPlat/manage' },
+    ],
+  },
+
   { name: '查询表格', icon: 'table', path: '/list', component: './TableList' },
   { path: '/', redirect: '/welcome' },
   { path: '*', layout: false, component: './404' },

@@ -1,4 +1,63 @@
 declare namespace API {
+  type AddOrUpdateResult = {
+    id?: number;
+  };
+
+  type ApiAddRequest = {
+    name?: string;
+    method?: string;
+    url?: string;
+    request?: string;
+    response?: string;
+    description?: string;
+  };
+
+  type ApiInfoVo = {
+    id?: number;
+    name?: string;
+    method?: string;
+    url?: string;
+    request?: string;
+    response?: string;
+    status?: number;
+    userInfo?: UserDTO;
+    description?: string;
+    createTime?: string;
+    updateTime?: string;
+  };
+
+  type ApiQueryRequest = {
+    id?: number;
+    name?: string;
+    method?: string;
+    url?: string;
+    status?: number;
+    username?: string;
+    description?: string;
+  };
+
+  type ApiUpdateRequest = {
+    id?: number;
+    name?: string;
+    method?: string;
+    url?: string;
+    request?: string;
+    response?: string;
+    description?: string;
+  };
+
+  type BaseResponseAddOrUpdateResult = {
+    code?: number;
+    message?: string;
+    data?: AddOrUpdateResult;
+  };
+
+  type BaseResponseListResultApiInfoVo = {
+    code?: number;
+    message?: string;
+    data?: ListResultApiInfoVo;
+  };
+
   type BaseResponseUserDTO = {
     code?: number;
     message?: string;
@@ -9,6 +68,33 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: UserLoginResult;
+  };
+
+  type BaseResponseVoid = {
+    code?: number;
+    message?: string;
+    data?: Record<string, any>;
+  };
+
+  type DeleteRequestLong = {
+    id?: number;
+    ids?: number[];
+  };
+
+  type getApiInfoPageParams = {
+    apiQueryRequest: ApiQueryRequest;
+    pageRequest: PageRequest;
+  };
+
+  type ListResultApiInfoVo = {
+    items?: ApiInfoVo[];
+    total?: number;
+  };
+
+  type PageRequest = {
+    pageNum?: number;
+    pageSize?: number;
+    sortFields?: string[];
   };
 
   type UserDTO = {

@@ -2,6 +2,7 @@
 import type { RequestConfig } from '@umijs/max';
 import { history } from '@umijs/max';
 import { message } from 'antd';
+import queryString from 'query-string';
 // 错误处理方案： 错误类型
 enum ErrorShowType {
   SILENT = 0,
@@ -25,6 +26,10 @@ interface ResponseStructure {
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const errorConfig: RequestConfig = {
+  // 请求参数序列化
+  paramsSerializer(params: any) {
+    return queryString.stringify(params);
+  },
   // 错误处理： umi@3 的错误处理方案。
   errorConfig: {
     // 错误接收及处理
@@ -62,7 +67,7 @@ export const errorConfig: RequestConfig = {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      const url = config?.url?.concat('?token = 123');
+      const url = config?.url;
       return { ...config, url };
     },
   ],
