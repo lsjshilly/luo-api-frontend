@@ -7,8 +7,11 @@ declare namespace API {
     name?: string;
     method?: string;
     url?: string;
-    request?: string;
-    response?: string;
+    requestHeaders?: string;
+    requestParams?: string;
+    requestBody?: string;
+    responseBody?: string;
+    requestExample?: string;
     description?: string;
   };
 
@@ -17,8 +20,11 @@ declare namespace API {
     name?: string;
     method?: string;
     url?: string;
-    request?: string;
-    response?: string;
+    requestHeaders?: string;
+    requestParams?: string;
+    requestBody?: string;
+    responseBody?: string;
+    requestExample?: string;
     status?: number;
     userInfo?: UserDTO;
     description?: string;
@@ -41,8 +47,11 @@ declare namespace API {
     name?: string;
     method?: string;
     url?: string;
-    request?: string;
-    response?: string;
+    requestHeaders?: string;
+    requestParams?: string;
+    requestBody?: string;
+    responseBody?: string;
+    requestExample?: string;
     description?: string;
   };
 

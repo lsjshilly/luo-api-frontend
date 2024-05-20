@@ -70,11 +70,10 @@ const handleRemove = async (selectedRows: API.ApiInfoVo[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    const ids =
-      selectedRows.filter((row) => row && row.id !== undefined).map((row) => row.id as number) ||
-      [];
+    const ids = selectedRows.filter((row) => row && row?.id).map((row) => row.id) || [];
     await deleteApiInfos({
       // 修复类型错误 不能将类型“undefined”分配给类型“number”。
+
       ids: ids,
     });
     hide();
