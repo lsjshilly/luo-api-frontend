@@ -61,6 +61,12 @@ declare namespace API {
     data?: AddOrUpdateResult;
   };
 
+  type BaseResponseApiInfoVo = {
+    code?: number;
+    message?: string;
+    data?: ApiInfoVo;
+  };
+
   type BaseResponseListResultApiInfoVo = {
     code?: number;
     message?: string;
@@ -90,9 +96,17 @@ declare namespace API {
     ids?: number[];
   };
 
+  type getApiInfoByIdParams = {
+    idRequest: IdRequestLong;
+  };
+
   type getApiInfoPageParams = {
     apiQueryRequest: ApiQueryRequest;
     pageRequest: PageRequest;
+  };
+
+  type IdRequestLong = {
+    id?: number;
   };
 
   type ListResultApiInfoVo = {

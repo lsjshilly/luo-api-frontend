@@ -1,44 +1,19 @@
-import {
-  addApiInfo,
-  deleteApiInfos,
-  getApiInfoPage,
-  updateApiInfo,
-} from '@/services/swagger/apiController';
-import { history } from '@umijs/max';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  FooterToolbar,
-  PageContainer,
-  ProDescriptions,
-  ProTable,
-} from '@ant-design/pro-components';
+import {deleteApiInfos, getApiInfoById, getApiInfoPage, updateApiInfo,} from '@/services/swagger/apiController';
+import {PlusOutlined} from '@ant-design/icons';
+import type {ActionType, ProColumns, ProDescriptionsItemProps} from '@ant-design/pro-components';
+import {FooterToolbar, PageContainer, ProDescriptions, ProTable,} from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, message } from 'antd';
-import { SortOrder } from 'antd/es/table/interface';
-import React, { useRef, useState } from 'react';
-import CreateForm from './CreateForm';
-import UpdateForm from './UpdateForm';
+import {Button, Drawer, message} from 'antd';
+import {SortOrder} from 'antd/es/table/interface';
+import React, {useEffect, useRef, useState} from 'react';
+import {useParams} from "@@/exports";
 
 /**
  * @en-US Add node
  * @zh-CN 添加节点
  * @param fields
  */
-const handleAdd = async (fields: API.ApiAddRequest) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addApiInfo({
-      ...fields,
-    });
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    return false;
-  }
-};
+
 
 /**
  * @en-US Update node
@@ -85,7 +60,7 @@ const handleRemove = async (selectedRows: API.ApiInfoVo[]) => {
     return false;
   }
 };
-const TableList: React.FC = () => {
+const ApiInfoDetail: React.FC = () => {
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -100,6 +75,39 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.ApiInfoVo>();
   const [selectedRowsState, setSelectedRows] = useState<API.ApiInfoVo[]>([]);
+
+  const [apiInfo, setApiInfo] = useState<API.ApiInfoVo>();
+
+  const params  = useParams();
+
+  const handleGetApiDetail = async () => {
+    const hide = message.loading('');
+    try {
+      const res =  await getApiInfoById({
+        idRequest: {
+          id: params?.id || 0,
+        }
+      });
+      hide();
+      setApiInfo(res.data)
+      return true;
+    } catch (error) {
+      hide();
+      return false;
+    }
+  };
+
+
+  useEffect(()=> {
+      if (!params.id) return null;
+
+      await handleGetApiDetail()
+
+  })
+
+
+
+
 
   /**
    * @en-US International configuration
@@ -141,6 +149,16 @@ const TableList: React.FC = () => {
       valueType: 'text',
     },
     {
+      title: '请求信息',
+      dataIndex: 'request',
+      valueType: 'textarea',
+    },
+    {
+      title: '响应信息',
+      dataIndex: 'response',
+      valueType: 'textarea',
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       filters: true,
@@ -173,28 +191,10 @@ const TableList: React.FC = () => {
     },
 
     {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      valueType: 'dateTime',
-      sorter: true,
-      hideInSearch: true,
-    },
-
-    {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
-
-        <a
-          key="detail"
-          onClick={() => {
-            history.push("/api/detail/" + record.id)
-          }}
-        >
-          查看
-        </a>,
-
         <a
           key="config"
           onClick={() => {
@@ -203,25 +203,6 @@ const TableList: React.FC = () => {
           }}
         >
           修改
-        </a>,
-        record.status === 0 && <a
-          key="online"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          开启
-        </a>,
-
-        record.status === 1 && <a
-          key="offline"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          关闭
         </a>,
       ],
     },
@@ -320,44 +301,6 @@ const TableList: React.FC = () => {
         </FooterToolbar>
       )}
 
-      <CreateForm
-        visible={createModalOpen}
-        onCancel={() => {
-          handleModalOpen(false);
-        }}
-        onSubmit={async (value) => {
-          const success = await handleAdd(value as API.ApiAddRequest);
-          if (success) {
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-          return success;
-        }}
-      ></CreateForm>
-
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-          return success;
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        visible={updateModalOpen}
-        values={currentRow || {}}
-      />
 
       <Drawer
         width={600}
@@ -385,4 +328,4 @@ const TableList: React.FC = () => {
     </PageContainer>
   );
 };
-export default TableList;
+export default ApiInfoDetail;

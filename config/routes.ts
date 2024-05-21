@@ -22,6 +22,7 @@ export default [
     routes: [
       { path: '/api', redirect: '/api/list' },
       { path: '/api/list', name: 'API管理', component: './ApiPlat/manage' },
+      { path: '/api/detail/:id', hideInMenu: true, name: 'API详情', component: './ApiPlat/info' },
     ],
   },
 
