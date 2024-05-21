@@ -90,10 +90,8 @@ const ApiInfoDetail: React.FC = () => {
       });
       hide();
       setApiInfo(res.data)
-      return true;
     } catch (error) {
       hide();
-      return false;
     }
   };
 
