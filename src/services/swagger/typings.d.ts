@@ -97,16 +97,12 @@ declare namespace API {
   };
 
   type getApiInfoByIdParams = {
-    idRequest: IdRequestLong;
+    id: number;
   };
 
   type getApiInfoPageParams = {
     apiQueryRequest: ApiQueryRequest;
     pageRequest: PageRequest;
-  };
-
-  type IdRequestLong = {
-    id?: number;
   };
 
   type ListResultApiInfoVo = {

@@ -189,7 +189,7 @@ const TableList: React.FC = () => {
         <a
           key="detail"
           onClick={() => {
-            history.push("/api/detail/" + record.id)
+            history.push("/api-info/detail/" + record.id)
           }}
         >
           查看
